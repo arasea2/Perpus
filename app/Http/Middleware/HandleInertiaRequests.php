@@ -2,9 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -30,10 +31,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        if(Auth::user()) {
+            $roles = $request->user()->roles;
+        } else {
+            $roles = null;
+        }
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'roles' => $roles,
+                
+            ],
+            'flash' => [
+                'message' => fn () => $request->session()->get('message')
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
